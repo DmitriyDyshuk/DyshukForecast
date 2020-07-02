@@ -1,31 +1,41 @@
 package com.example.dyshukforecast.presenter
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager.widget.PagerAdapter
+import androidx.viewpager.widget.ViewPager
 import com.example.dyshukforecast.R
 import com.example.dyshukforecast.model.Weather
 
-class ForecastAdapter(private val values: ArrayList<Weather>): RecyclerView.Adapter<ForecastAdapter.ViewHolder>() {
+class ForecastAdapter(private val context: Context, private val itemList: ArrayList<Weather>) : PagerAdapter() {
 
-    override fun getItemCount() =values.size
+    override fun getCount() = itemList.size
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(
-            LayoutInflater.from(parent.context).inflate(R.layout.item_forecast_wearher, parent, false)
-        )
+    override fun instantiateItem(view: ViewGroup, position: Int): Any {
+        val layout = LayoutInflater.from(context).inflate(R.layout.item_forecast_wearher, view, false)
+        val item = itemList[position]
+
+//        layout.rbRating.setScore(item.rating * 2)
+//        layout.tvTitle.text = item.title
+//        layout.tvDescription.text = item.description
+//
+//
+//        view.addView(layout, 0)
+
+        return layout
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val weather = values[position]
+    override fun isViewFromObject(view: View, `object`: Any): Boolean {
+        return view == `object`
     }
 
-    class ViewHolder(itemView: View) :RecyclerView.ViewHolder(itemView){
-        var tvTime = itemView.findViewById(R.id.tvTime) as? TextView
-        var ivWeather = itemView.findViewById(R.id.ivWeather) as? ImageView
-        var tvTemperature = itemView.findViewById(R.id.tvTemperature) as? TextView
+    override fun destroyItem(container: View, position: Int, `object`: Any) {
+        (container as ViewPager).removeView(`object` as View)
+    }
+
+    override fun getPageWidth(position: Int): Float {
+        return 0.8F
     }
 }
