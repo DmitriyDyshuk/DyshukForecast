@@ -6,8 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
-import com.example.dyshukforecast.R
+import com.example.dyshukforecast.*
 import com.example.dyshukforecast.model.Weather
+import kotlinx.android.synthetic.main.item_forecast_wearher.view.*
 
 class ForecastAdapter(private val context: Context, private val itemList: ArrayList<Weather>) : PagerAdapter() {
 
@@ -17,12 +18,12 @@ class ForecastAdapter(private val context: Context, private val itemList: ArrayL
         val layout = LayoutInflater.from(context).inflate(R.layout.item_forecast_wearher, view, false)
         val item = itemList[position]
 
-//        layout.rbRating.setScore(item.rating * 2)
-//        layout.tvTitle.text = item.title
-//        layout.tvDescription.text = item.description
-//
-//
-//        view.addView(layout, 0)
+        layout.tvTemperature.text = item.temperature?.toPresentableCelsius()
+        layout.ivWeather.setImageResource(R.drawable.vector_sunny_icon)
+        layout.tvTime.text = item.time?.toDate()?.toHour()
+        layout.tvTimeFormat.text = item.time?.toDate()?.toTimeFormat()
+
+        view.addView(layout, 0)
 
         return layout
     }
@@ -36,6 +37,6 @@ class ForecastAdapter(private val context: Context, private val itemList: ArrayL
     }
 
     override fun getPageWidth(position: Int): Float {
-        return 0.8F
+        return 0.25F
     }
 }

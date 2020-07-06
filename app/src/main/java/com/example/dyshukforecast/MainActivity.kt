@@ -10,6 +10,8 @@ import com.androidnetworking.AndroidNetworking
 import com.androidnetworking.common.Priority
 import com.androidnetworking.error.ANError
 import com.androidnetworking.interfaces.JSONObjectRequestListener
+import com.example.dyshukforecast.model.Weather
+import com.example.dyshukforecast.presenter.ForecastAdapter
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
@@ -29,11 +31,8 @@ class MainActivity : AppCompatActivity() {
         makeRequest(null)
 
         ivSearch.setOnClickListener {
-            // Set the fields to specify which types of place data to
-            // return after the user has made a selection.
             val fields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG)
 
-            // Start the autocomplete intent.
             val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
                 .build(this)
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)
@@ -42,18 +41,19 @@ class MainActivity : AppCompatActivity() {
 
 
 
-    private fun makeRequest(latLng: LatLng?){
+    private fun makeRequest(latLng: LatLng?) {
         AndroidNetworking.get("https://api.openweathermap.org/data/2.5/onecall")
             .addQueryParameter("lat", "${latLng?.latitude ?: 50.4501}" )
             .addQueryParameter("lon", "${latLng?.longitude ?: 30.5234}")
             .addQueryParameter("appid", "eb7d05cd954e0b91e47b916c41b3cd31")
             .setPriority(Priority.HIGH)
             .build()
-            .getAsJSONObject(object : JSONObjectRequestListener{
+            .getAsJSONObject(object : JSONObjectRequestListener {
                 override fun onResponse(response: JSONObject) {
                     val main = response.getJSONObject("current")
                     val temperature = main.getInt("temp")
 
+                    val forecastList = ArrayList<Weather>()
                     val weatherArray = main.getJSONArray("weather")
                     for (i in 0 until weatherArray.length()) {
                         val weatherResult = weatherArray.getJSONObject(i)
@@ -62,15 +62,28 @@ class MainActivity : AppCompatActivity() {
                         tvDescription.text = description
                     }
 
-                    val const = 273.15F
-                    val celsius = temperature - const
-
-                    if(celsius < 0) {
+                    if(temperature.toCelsius() < 0) {
                         ivWeatherIcon.setImageResource(R.drawable.vector_snow_icon)
                     }
 
-                    tvTemperature.text = celsius.toInt().toString()
+                    tvTemperature.text = temperature.toPresentableCelsius()
 
+                    val hourlyArray = response.getJSONArray("hourly")
+                    for (i in 0 until hourlyArray.length()) {
+                        val hourlyResult = hourlyArray.getJSONObject(i)
+                        val hourlyTemp = hourlyResult.getInt("temp")
+                        val dt = hourlyResult.getLong("dt")
+
+
+
+                        val weather = Weather()
+                        weather.temperature = hourlyTemp
+                        weather.time = dt
+                        forecastList.add(weather)
+                    }
+
+                    val adapter = ForecastAdapter(this@MainActivity, forecastList)
+                    vpForecast.adapter = adapter
                 }
 
                 override fun onError(error: ANError?) {
@@ -78,6 +91,8 @@ class MainActivity : AppCompatActivity() {
                 }
             })
     }
+
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
@@ -97,4 +112,6 @@ class MainActivity : AppCompatActivity() {
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
+
+
 }
